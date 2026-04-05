@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grilla de Servicios — Lavadero</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
+
+    :root {
+      --amarillo: #F5C518;
+      --amarillo-oscuro: #C49A00;
+      --negro: #0D0D0D;
+      --gris-oscuro: #1A1A1A;
+      --gris-medio: #2C2C2C;
+      --gris-linea: #3A3A3A;
+      --blanco: #F2F2F2;
+      --blanco-suave: #B0B0B0;
+      --verde: #2ECC71;
+      --rojo: #E74C3C;
+      --azul: #3498DB;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--negro);
+      color: var(--blanco);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--gris-oscuro);
+      border-bottom: 3px solid var(--amarillo);
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-bus {
+      width: 52px;
+      height: 52px;
+      flex-shrink: 0;
+    }
+
+    .titulo-empresa {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 2rem;
+      color: var(--amarillo);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .subtitulo-empresa {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 400;
+      font-size: 1rem;
+      color: var(--blanco-suave);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .header-right {
+      text-align: right;
+    }
+
+    .actualizacion-label {
+      font-size: 0.75rem;
+      color: var(--blanco-suave);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .actualizacion-fecha {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--amarillo);
+      letter-spacing: 1px;
+    }
+
+    /* ESTADO de carga */
+    #estado-carga {
+      text-align: center;
+      padding: 60px 20px;
+      display: none;
+    }
+
+    #estado-carga.visible { display: block; }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--gris-linea);
+      border-top: 4px solid var(--amarillo);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* VISOR DE IMAGEN */
+    #visor-imagen {
+      padding: 24px 32px 40px;
+      display: none;
+    }
+
+    #visor-imagen.visible { display: block; }
+
+    #grilla-img {
+      width: 100%;
+      max-width: 100%;
+      display: block;
+      border: 1px solid var(--gris-linea);
+      border-radius: 4px;
+    }
+
+    /* VISOR DE PDF */
+    #visor-pdf {
+      padding: 0 32px 40px;
+      display: none;
+    }
+
+    #visor-pdf.visible { display: block; }
+
+    #grilla-pdf {
+      width: 100%;
+      height: calc(100vh - 180px);
+      border: none;
+      border-radius: 4px;
+      display: block;
+    }
+
+    /* MENSAJE DE ERROR / INSTRUCCIONES */
+    #mensaje-vacio {
+      display: none;
+      padding: 60px 40px;
+    }
+
+    #mensaje-vacio.visible { display: block; }
+
+    .instrucciones-box {
+      background: var(--gris-medio);
+      border: 1px solid var(--gris-linea);
+      border-left: 4px solid var(--amarillo);
+      border-radius: 6px;
+      padding: 32px 36px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .instrucciones-box h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--amarillo);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .instrucciones-box p {
+      color: var(--blanco-suave);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+
+    .instrucciones-box code {
+      background: var(--negro);
+      color: var(--amarillo);
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.9em;
+      font-family: monospace;
+    }
+
+    .instrucciones-box ul {
+      list-style: none;
+      margin: 8px 0 12px 0;
+    }
+
+    .instrucciones-box ul li::before {
+      content: "▸ ";
+      color: var(--amarillo);
+    }
+
+    .instrucciones-box ul li {
+      color: var(--blanco-suave);
+      font-size: 0.9rem;
+      padding: 3px 0;
+    }
+
+    /* RELOJ EN VIVO */
+    .reloj-live {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem;
+      color: var(--blanco-suave);
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+
+    .dot-live {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--verde);
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 14px;
+      font-size: 0.75rem;
+      color: #555;
+      border-top: 1px solid var(--gris-linea);
+      letter-spacing: 1px;
+    }
+
+    /* BOTÓN SUBIR */
+    .btn-subir {
+      background: var(--amarillo);
+      color: var(--negro);
+      border: none;
+      padding: 10px 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-subir:hover { background: var(--amarillo-oscuro); }
+
+    .upload-zone {
+      margin-top: 20px;
+      padding: 20px;
+      border: 2px dashed var(--gris-linea);
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    input[type="file"] { display: none; }
+
+    .upload-zone label {
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    /* MODO PANTALLA COMPLETA */
+    @media (min-width: 1200px) {
+      header { padding: 20px 60px; }
+      #visor-imagen { padding: 28px 60px 60px; }
+      #visor-pdf { padding: 0 60px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <div>
+        <div class="titulo-empresa">Lavadero de Buses</div>
+        <div class="subtitulo-empresa">Grilla de servicios</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="actualizacion-label">Última actualización</div>
+      <div class="actualizacion-fecha" id="fecha-actualizacion">—</div>
+      <div class="reloj-live"><span class="dot-live"></span><span id="reloj-actual"></span></div>
+    </div>
+  </header>
+
+  <!-- Estado: cargando -->
+  <div id="estado-carga">
+    <div class="spinner"></div>
+    <p style="color: var(--blanco-suave); font-size: 0.9rem;">Cargando grilla...</p>
+  </div>
+
+  <!-- Visor de imagen -->
+  <div id="visor-imagen">
+    <img id="grilla-img" alt="Grilla de servicios" />
+    <div style="text-align:center; padding: 16px 0 32px;">
+      <label for="file-input-img" style="color:#555; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; cursor:pointer;">ACTUALIZAR GRILLA</label>
+      <input type="file" id="file-input-img" accept=".jpg,.jpeg,.png,.pdf" onchange="cargarArchivo(event)" style="display:none"/>
+    </div>
+  </div>
+
+  <!-- Visor de PDF -->
+  <div id="visor-pdf">
+    <iframe id="grilla-pdf" title="Grilla de servicios"></iframe>
+    <div style="text-align:center; padding: 16px 0 32px;">
+      <label for="file-input-pdf" style="color:#555; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; cursor:pointer;">ACTUALIZAR GRILLA</label>
+      <input type="file" id="file-input-pdf" accept=".jpg,.jpeg,.png,.pdf" onchange="cargarArchivo(event)" style="display:none"/>
+    </div>
+  </div>
+
+  <!-- Mensaje si no hay archivo + zona de upload manual -->
+  <div id="mensaje-vacio" class="visible">
+    <div class="instrucciones-box">
+      <h2>⚡ Pantalla del Lavadero</h2>
+      <p>Esta pantalla muestra automáticamente la grilla actualizada. Para cargar o actualizar la grilla, usá el botón de abajo.</p>
+
+      <p><strong style="color: var(--blanco);">Formatos aceptados:</strong></p>
+      <ul>
+        <li>Imagen JPG o PNG exportada desde Google Sheets</li>
+        <li>Archivo PDF exportado desde Google Sheets</li>
+      </ul>
+
+      <p style="margin-top: 8px;">La grilla queda guardada y se muestra automáticamente la próxima vez que se abra esta página en cualquier dispositivo de la red.</p>
+
+      <div class="upload-zone">
+        <label for="file-input">
+          <button class="btn-subir" onclick="document.getElementById('file-input').click()">
+            📂 Cargar nueva grilla
+          </button>
+        </label>
+        <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf" onchange="cargarArchivo(event)"/>
+        <p style="color: #666; font-size: 0.8rem; margin-top: 10px;">JPG · PNG · PDF</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Lavadero de Buses &nbsp;·&nbsp; Actualización diaria &nbsp;·&nbsp; Solo uso interno
+  </footer>
+
+  <script>
+    // ─── RELOJ EN VIVO ───────────────────────────────────────────────
+    function actualizarReloj() {
+      const ahora = new Date();
+      const hh = String(ahora.getHours()).padStart(2, '0');
+      const mm = String(ahora.getMinutes()).padStart(2, '0');
+      const ss = String(ahora.getSeconds()).padStart(2, '0');
+      document.getElementById('reloj-actual').textContent = `${hh}:${mm}:${ss} hs`;
+    }
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+
+    // ─── ALMACENAMIENTO LOCAL ────────────────────────────────────────
+    // La grilla se guarda en localStorage del navegador como base64.
+    // Así persiste entre recargas SIN necesitar servidor.
+
+    const KEY_DATA   = 'lavadero_grilla_data';
+    const KEY_TIPO   = 'lavadero_grilla_tipo';   // 'imagen' | 'pdf'
+    const KEY_FECHA  = 'lavadero_grilla_fecha';
+
+    function mostrarFecha(isoStr) {
+      if (!isoStr) { document.getElementById('fecha-actualizacion').textContent = '—'; return; }
+      const d = new Date(isoStr);
+      const fecha = d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const hora  = d.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
+      document.getElementById('fecha-actualizacion').textContent = `${fecha} a las ${hora} hs`;
+    }
+
+    function ocultarTodo() {
+      document.getElementById('estado-carga').classList.remove('visible');
+      document.getElementById('visor-imagen').classList.remove('visible');
+      document.getElementById('visor-pdf').classList.remove('visible');
+      document.getElementById('mensaje-vacio').classList.remove('visible');
+    }
+
+    function mostrarGrilla() {
+      const data  = localStorage.getItem(KEY_DATA);
+      const tipo  = localStorage.getItem(KEY_TIPO);
+      const fecha = localStorage.getItem(KEY_FECHA);
+
+      ocultarTodo();
+
+      if (!data) {
+        document.getElementById('mensaje-vacio').classList.add('visible');
+        mostrarFecha(null);
+        return;
+      }
+
+      mostrarFecha(fecha);
+
+      if (tipo === 'pdf') {
+        document.getElementById('grilla-pdf').src = data;
+        document.getElementById('visor-pdf').classList.add('visible');
+      } else {
+        document.getElementById('grilla-img').src = data;
+        document.getElementById('visor-imagen').classList.add('visible');
+      }
+    }
+
+    function cargarArchivo(event) {
+      const archivo = event.target.files[0];
+      if (!archivo) return;
+
+      ocultarTodo();
+      document.getElementById('estado-carga').classList.add('visible');
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result;
+        const tipo = archivo.type === 'application/pdf' ? 'pdf' : 'imagen';
+        const ahora = new Date().toISOString();
+
+        try {
+          localStorage.setItem(KEY_DATA,  base64);
+          localStorage.setItem(KEY_TIPO,  tipo);
+          localStorage.setItem(KEY_FECHA, ahora);
+        } catch (err) {
+          // Si el archivo es muy grande para localStorage, avisar
+          alert('El archivo es demasiado grande para almacenamiento local. Intentá con una imagen JPG comprimida (recomendado: menos de 4 MB).');
+          ocultarTodo();
+          document.getElementById('mensaje-vacio').classList.add('visible');
+          return;
+        }
+
+        mostrarGrilla();
+      };
+      reader.readAsDataURL(archivo);
+    }
+
+    // ─── CARGA INICIAL ───────────────────────────────────────────────
+    mostrarGrilla();
+
+    // ─── AUTO-RECARGA CADA 60 SEGUNDOS ──────────────────────────────
+    // Recarga la página cada hora para que si alguien
+    // actualiza la grilla en otro dispositivo, todos la ven.
+    setTimeout(() => location.reload(), 60 * 60 * 1000);
+  </script>
+</body>
+</html>
