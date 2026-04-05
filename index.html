@@ -306,44 +306,14 @@
   <!-- Visor de imagen -->
   <div id="visor-imagen">
     <img id="grilla-img" alt="Grilla de servicios" />
-    <div style="text-align:center; padding: 16px 0 32px;">
-      <label for="file-input-img" style="color:#555; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; cursor:pointer;">ACTUALIZAR GRILLA</label>
-      <input type="file" id="file-input-img" accept=".jpg,.jpeg,.png,.pdf" onchange="cargarArchivo(event)" style="display:none"/>
-    </div>
   </div>
 
-  <!-- Visor de PDF -->
-  <div id="visor-pdf">
-    <iframe id="grilla-pdf" title="Grilla de servicios"></iframe>
-    <div style="text-align:center; padding: 16px 0 32px;">
-      <label for="file-input-pdf" style="color:#555; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; cursor:pointer;">ACTUALIZAR GRILLA</label>
-      <input type="file" id="file-input-pdf" accept=".jpg,.jpeg,.png,.pdf" onchange="cargarArchivo(event)" style="display:none"/>
-    </div>
-  </div>
-
-  <!-- Mensaje si no hay archivo + zona de upload manual -->
-  <div id="mensaje-vacio" class="visible">
+  <!-- Mensaje si no hay grilla.jpg todavía -->
+  <div id="mensaje-vacio">
     <div class="instrucciones-box">
-      <h2>⚡ Pantalla del Lavadero</h2>
-      <p>Esta pantalla muestra automáticamente la grilla actualizada. Para cargar o actualizar la grilla, usá el botón de abajo.</p>
-
-      <p><strong style="color: var(--blanco);">Formatos aceptados:</strong></p>
-      <ul>
-        <li>Imagen JPG o PNG exportada desde Google Sheets</li>
-        <li>Archivo PDF exportado desde Google Sheets</li>
-      </ul>
-
-      <p style="margin-top: 8px;">La grilla queda guardada y se muestra automáticamente la próxima vez que se abra esta página en cualquier dispositivo de la red.</p>
-
-      <div class="upload-zone">
-        <label for="file-input">
-          <button class="btn-subir" onclick="document.getElementById('file-input').click()">
-            📂 Cargar nueva grilla
-          </button>
-        </label>
-        <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf" onchange="cargarArchivo(event)"/>
-        <p style="color: #666; font-size: 0.8rem; margin-top: 10px;">JPG · PNG · PDF</p>
-      </div>
+      <h2>Sin grilla cargada</h2>
+      <p>Todavía no hay ninguna grilla publicada. Para mostrar la grilla en esta pantalla, subí el archivo <code>grilla.jpg</code> al repositorio en GitHub.</p>
+      <p>La pantalla se actualiza automáticamente cada 5 minutos.</p>
     </div>
   </div>
 
@@ -363,90 +333,49 @@
     actualizarReloj();
     setInterval(actualizarReloj, 1000);
 
-    // ─── ALMACENAMIENTO LOCAL ────────────────────────────────────────
-    // La grilla se guarda en localStorage del navegador como base64.
-    // Así persiste entre recargas SIN necesitar servidor.
+    // ─── CARGA DE IMAGEN DESDE GITHUB ───────────────────────────────
+    // La imagen "grilla.jpg" vive en el mismo repositorio de GitHub.
+    // Se agrega ?t=timestamp para evitar que el navegador use caché
+    // y siempre muestre la versión más reciente.
 
-    const KEY_DATA   = 'lavadero_grilla_data';
-    const KEY_TIPO   = 'lavadero_grilla_tipo';   // 'imagen' | 'pdf'
-    const KEY_FECHA  = 'lavadero_grilla_fecha';
+    function cargarGrilla() {
+      const img = document.getElementById('grilla-img');
+      const ts  = Date.now();
+      img.src   = `grilla.jpg?t=${ts}`;
+    }
 
-    function mostrarFecha(isoStr) {
-      if (!isoStr) { document.getElementById('fecha-actualizacion').textContent = '—'; return; }
-      const d = new Date(isoStr);
-      const fecha = d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
-      const hora  = d.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
+    function mostrarFechaDeImagen(img) {
+      // Usamos la fecha actual de carga como referencia
+      const ahora = new Date();
+      const fecha = ahora.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const hora  = ahora.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
       document.getElementById('fecha-actualizacion').textContent = `${fecha} a las ${hora} hs`;
     }
 
-    function ocultarTodo() {
-      document.getElementById('estado-carga').classList.remove('visible');
-      document.getElementById('visor-imagen').classList.remove('visible');
-      document.getElementById('visor-pdf').classList.remove('visible');
-      document.getElementById('mensaje-vacio').classList.remove('visible');
-    }
+    window.addEventListener('load', function() {
+      const img = document.getElementById('grilla-img');
 
-    function mostrarGrilla() {
-      const data  = localStorage.getItem(KEY_DATA);
-      const tipo  = localStorage.getItem(KEY_TIPO);
-      const fecha = localStorage.getItem(KEY_FECHA);
-
-      ocultarTodo();
-
-      if (!data) {
-        document.getElementById('mensaje-vacio').classList.add('visible');
-        mostrarFecha(null);
-        return;
-      }
-
-      mostrarFecha(fecha);
-
-      if (tipo === 'pdf') {
-        document.getElementById('grilla-pdf').src = data;
-        document.getElementById('visor-pdf').classList.add('visible');
-      } else {
-        document.getElementById('grilla-img').src = data;
+      img.onload = function() {
+        document.getElementById('estado-carga').classList.remove('visible');
+        document.getElementById('mensaje-vacio').classList.remove('visible');
         document.getElementById('visor-imagen').classList.add('visible');
-      }
-    }
-
-    function cargarArchivo(event) {
-      const archivo = event.target.files[0];
-      if (!archivo) return;
-
-      ocultarTodo();
-      document.getElementById('estado-carga').classList.add('visible');
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64 = e.target.result;
-        const tipo = archivo.type === 'application/pdf' ? 'pdf' : 'imagen';
-        const ahora = new Date().toISOString();
-
-        try {
-          localStorage.setItem(KEY_DATA,  base64);
-          localStorage.setItem(KEY_TIPO,  tipo);
-          localStorage.setItem(KEY_FECHA, ahora);
-        } catch (err) {
-          // Si el archivo es muy grande para localStorage, avisar
-          alert('El archivo es demasiado grande para almacenamiento local. Intentá con una imagen JPG comprimida (recomendado: menos de 4 MB).');
-          ocultarTodo();
-          document.getElementById('mensaje-vacio').classList.add('visible');
-          return;
-        }
-
-        mostrarGrilla();
+        mostrarFechaDeImagen();
       };
-      reader.readAsDataURL(archivo);
-    }
 
-    // ─── CARGA INICIAL ───────────────────────────────────────────────
-    mostrarGrilla();
+      img.onerror = function() {
+        // No existe grilla.jpg todavía
+        document.getElementById('estado-carga').classList.remove('visible');
+        document.getElementById('mensaje-vacio').classList.add('visible');
+      };
 
-    // ─── AUTO-RECARGA CADA 60 SEGUNDOS ──────────────────────────────
-    // Recarga la página cada hora para que si alguien
-    // actualiza la grilla en otro dispositivo, todos la ven.
-    setTimeout(() => location.reload(), 60 * 60 * 1000);
+      document.getElementById('estado-carga').classList.add('visible');
+      cargarGrilla();
+    });
+
+    // ─── AUTO-RECARGA CADA 5 MINUTOS ────────────────────────────────
+    // La TV recarga la página sola. Así cuando subas una nueva grilla
+    // a GitHub, la pantalla la toma automáticamente en minutos.
+    setInterval(() => location.reload(), 5 * 60 * 1000);
   </script>
 </body>
 </html>
