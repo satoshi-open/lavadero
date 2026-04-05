@@ -293,7 +293,7 @@
     <div class="header-right">
       <div class="actualizacion-label">Última actualización</div>
       <div class="actualizacion-fecha" id="fecha-actualizacion">—</div>
-      <div class="reloj-live"><span class="dot-live"></span><span id="reloj-actual"></span></div>
+
     </div>
   </header>
 
@@ -322,16 +322,7 @@
   </footer>
 
   <script>
-    // ─── RELOJ EN VIVO ───────────────────────────────────────────────
-    function actualizarReloj() {
-      const ahora = new Date();
-      const hh = String(ahora.getHours()).padStart(2, '0');
-      const mm = String(ahora.getMinutes()).padStart(2, '0');
-      const ss = String(ahora.getSeconds()).padStart(2, '0');
-      document.getElementById('reloj-actual').textContent = `${hh}:${mm}:${ss} hs`;
-    }
-    actualizarReloj();
-    setInterval(actualizarReloj, 1000);
+
 
     // ─── CARGA DE IMAGEN DESDE GITHUB ───────────────────────────────
     // La imagen "grilla.jpg" vive en el mismo repositorio de GitHub.
@@ -344,12 +335,13 @@
       img.src   = `grilla.jpg?t=${ts}`;
     }
 
-    function mostrarFechaDeImagen(img) {
-      // Usamos la fecha actual de carga como referencia
+    function mostrarFechaDeImagen() {
       const ahora = new Date();
-      const fecha = ahora.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
-      const hora  = ahora.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
-      document.getElementById('fecha-actualizacion').textContent = `${fecha} a las ${hora} hs`;
+      const dia = String(ahora.getDate()).padStart(2, '0');
+      const mes = ahora.toLocaleDateString('es-AR', { month: 'long' }).toUpperCase();
+      const hh  = String(ahora.getHours()).padStart(2, '0');
+      const mm  = String(ahora.getMinutes()).padStart(2, '0');
+      document.getElementById('fecha-actualizacion').textContent = `${dia} DE ${mes} A LAS ${hh}:${mm}HS`;
     }
 
     window.addEventListener('load', function() {
